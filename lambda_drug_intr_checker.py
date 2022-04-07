@@ -28,8 +28,12 @@ def check_interaction(drug_1, drug_2):
   return:
     boolean: True if interacts and False otherwise
   """
+  drug_1_name = drug_1['id']
+  drug_1_name_lower = drug_1['id'].lower()
   for level in ['Unkown','Moderate','Major']:
-    if [drug_1['id'], level] in drug_2['drug_interaction']:
+    if [ drug_1_name, level] in drug_2['drug_interaction']:
+      return True
+    if [drug_1_name_lower,level] in drug_2['drug_interaction']:
       return True
   return False
   
@@ -77,6 +81,7 @@ def get_items(drugs_ids):
 
 
 def lambda_handler(event, context):
+    try:   
       data = json.loads(event["body"])
       drug_list = get_items(data)
       data = check_interaction_list(drug_list)
@@ -89,3 +94,12 @@ def lambda_handler(event, context):
         'body':  json.dumps(data),
       }
       return response
+    except Exception as e:
+      return {
+        'statusCode': 400,
+        'headers': {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
+        'body':  e,
+      }
