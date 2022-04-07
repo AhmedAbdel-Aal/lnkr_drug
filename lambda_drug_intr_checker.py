@@ -3,6 +3,7 @@ import json
 
 print('Loading function')
 dynamo = boto3.client('dynamodb')
+dynamodb = boto3.resource('dynamodb')
 
 
 def respond(err, data=None):
@@ -41,34 +42,50 @@ def check_interaction_list(drug_list):
     drug_list: a list of drug items
   
   returns:
-    interactions: a dict that in form of: 
-        interaction = {drug_1:{drug_2:True, drug_3, False}, drug_2:{drug_1:True, drug_3:false}, drug_3:{drug_1:False, drug_2:False}}
+    interactions: a list of list interactions that in form of: 
+        interaction = [drug_1:[drug_2], drug_2:[drug_1:True], drug_3:[]}
       where this example mean that drug 1 interacts with drug 2 but not with 3
   """
   interactions = {}
-  drug_list_items = [drug['Item'] for drug in drug_list]
-  print(drug_list_items)
-  for drug_1 in drug_list_items:
-    interactions[drug_1['id']] = {}
-    for drug_2 in drug_list_items:
+  print(drug_list)
+  for drug_1 in drug_list:
+    interactions[drug_1['id']] = []
+    for drug_2 in drug_list:
       if drug_1['id'] != drug_2['id']:
-        interactions[drug_1['id']][drug_2['id']] =  check_interaction(drug_1, drug_2)
+        if check_interaction(drug_1, drug_2):
+          interactions[drug_1['id']].append([drug_2['id']])
   
   return interactions
 
 
+def get_items(drugs_ids):
+  """
+  a method that given ids of the drugs, it queries the dynamo database and get the corresponing drugs docs
+  
+  params:
+    drugs_ids: a list of drugs ids
+    
+  return:
+    drug_list: a list of drugs documents
+  """
+  drug_list = []
+  drugs_table = dynamodb.Table('drugs')
+  for drug_id in drugs_ids: 
+    drug = drugs_table.get_item(Key = {'id':drug_id})
+    drug_list.append(drug['Item'])
+  return drug_list
+
+
 def lambda_handler(event, context):
-    try:
-      data = event["body"]
-      data = check_interaction_list(data)
+      data = json.loads(event["body"])
+      drug_list = get_items(data)
+      data = check_interaction_list(drug_list)
       response = {
         'statusCode': 200,
-        'body':  json.dumps(data),
         'headers': {
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
+          'Access-Control-Allow-Origin': '*',
         },
+        'body':  json.dumps(data),
       }
-      return respond(err = None, data = response)
-    except Exception  as e:
-      return respond(err = e, data = None)
+      return response
