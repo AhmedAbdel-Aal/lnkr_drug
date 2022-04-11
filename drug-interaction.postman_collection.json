@@ -1,0 +1,142 @@
+{
+	"info": {
+		"_postman_id": "2eb87e8a-abcb-46a9-8290-35fd9cafc144",
+		"name": "drug-interaction",
+		"description": "API to get a drug document using drug-id",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "get-augmentin",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://258jx22haf.execute-api.us-east-1.amazonaws.com/items/Augmentin",
+					"protocol": "https",
+					"host": [
+						"258jx22haf",
+						"execute-api",
+						"us-east-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"items",
+						"Augmentin"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "check-drug-interaction",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "[\r\n    \"Amrix\",\"Tramadol\",\"Augmentin\",\"Aspirin\",\"Amoxicillin\"\r\n]",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://nsafqqdpqh.execute-api.us-east-1.amazonaws.com/dev/check",
+					"protocol": "https",
+					"host": [
+						"nsafqqdpqh",
+						"execute-api",
+						"us-east-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"dev",
+						"check"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get-all-drugs",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://nsafqqdpqh.execute-api.us-east-1.amazonaws.com/dev/",
+					"protocol": "https",
+					"host": [
+						"nsafqqdpqh",
+						"execute-api",
+						"us-east-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"dev",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "check-disease-interaction",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"disease\": [\r\n      \"colitis\",\r\n    \"cardiovascular disease\"\r\n    ],\r\n    \"drugs\": [\r\n      \"Augmentin\",\r\n      \"Amrix\"\r\n    ]\r\n  }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://nsafqqdpqh.execute-api.us-east-1.amazonaws.com/dev/python-disease-drug-checker",
+					"protocol": "https",
+					"host": [
+						"nsafqqdpqh",
+						"execute-api",
+						"us-east-1",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"dev",
+						"python-disease-drug-checker"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"pm.sendRequest(\"https://258jx22haf.execute-api.us-east-1.amazonaws.com/Augmentin\", function (err, response) {",
+					"    console.log(response.json());",
+					"});"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}
