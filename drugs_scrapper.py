@@ -5,6 +5,8 @@ from bs4 import BeautifulSoup
 import time
 from tqdm import tqdm
 import json
+from lxml import etree
+
 
 class Drugs_Scrapper:
     def __init__(self, drug_id, drug_link):
@@ -22,6 +24,7 @@ class Drugs_Scrapper:
         self.drug_class = []
         
         self.drug_html = None
+        self.dom = None
         self.interaction_link = None
         self.interaction_html = None
         self.interactions_tags = []
@@ -37,8 +40,11 @@ class Drugs_Scrapper:
         self.request_maxout = 5
         
     def assert_brand_name(self):
-        brand_extracted = self.drug_html.find("p","drug-subtitle").find("i").text.split(' ')
-        self.brand_name = self.remove_tags(brand_extracted)
+        brands = self.dom[0].xpath('//*[@id="content"]/div[2]/p[1]/text()')
+        for idx, ls in enumerate(brands[:-2]):
+            if brands[idx] == '\n' and brands[idx+2] == '\n':
+                self.brand_name = self.remove_tags(brands[idx+1]).split(',')
+                break
     
     def assert_generic_name(self):
         generic_extracted = str(self.drug_html.find("p","drug-subtitle")).split("<br/>")[0].split('</b>')[-1]
@@ -58,6 +64,7 @@ class Drugs_Scrapper:
             res = requests.get(self.drug_link)
             if res.status_code == 200: 
                 self.drug_html = BeautifulSoup(res.text, 'html.parser') 
+                self.dom = etree.HTML(str(self.drug_html))
                 self.asser_names()
                 return 
             else:
@@ -141,24 +148,20 @@ class Drugs_Scrapper:
         
     
     def get_json(self, path = None, save = False):
-        aDict = {
-                'id': drug_scrapper.drug_id,
-                'generic_name': drug_scrapper.generic_name,
-                'brand_name': drug_scrapper.brand_name,
-                'drug_class': drug_scrapper.drug_class,
-                'drug_interaction': drug_scrapper.interactions,
-                'disease_interaction': drug_scrapper.disease_interactions,
-                'source': 'drugs.com'
-        }
-        if save:
-            if path is not None:
-                full_path = os.path.join(path, self.drug_id + ".json")
-            else:
-                full_path = self.drug_id + ".json"
+        dicts = []
+        for brand_name in self.brand_name:
+            with open('./drugs/new/'+str(brand_name)+'.txt', 'w', encoding='utf-8') as f:
+                f.write(str(self.drug_html)) 
 
-            jsonString = json.dumps(aDict)
-            jsonFile = open(full_path, "w")
-            jsonFile.write(jsonString)
-            jsonFile.close()
+            aDict = {
+                    'id': self.drug_id,
+                    'generic_name': self.generic_name,
+                    'brand_name': brand_name,
+                    'drug_class': self.drug_class,
+                    'drug_interaction': self.interactions,
+                    'disease_interaction': self.disease_interactions,
+                    'source': 'drugs.com'
+            }
+            dicts.append(aDict)
         
-        return aDict
+        return dicts
